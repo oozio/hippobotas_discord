@@ -2,6 +2,8 @@ import json
 
 from utils import discord
 
+import mal.handler
+
 def handle_command(body):
     # dummy return
     channel_id = body["channel_id"]
@@ -12,7 +14,12 @@ def handle_command(body):
     data = body['data']
     command = data['name']
     
-    return f"{command}: ..ok..."
+    if 'mal' in command:
+        return mal.handler.handle(command, data)
+    
+    
+    raise ValueError(f"Unrecognized command {command}, sad")
+        
 
 def lambda_handler(event, context):
     # check input
