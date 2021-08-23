@@ -1,13 +1,9 @@
 import requests
 
+from functools import wraps
 from enum import Enum
 
-EXCEPTIONS_TO_CATCH = (ConnectionError, TimeoutError, HTTPError)
-
-class METHODS(Enum):
-    GET = 'GET'
-    POST = 'POST'
-    PUT = 'PUT'
+EXCEPTIONS_TO_CATCH = (ConnectionError, TimeoutError, requests.exceptions.HTTPError, requests.exceptions.Timeout)
 
 def retry(retries=3, backoff=2, backoff_factor=2):
     def retry_decorator(f):
@@ -15,7 +11,7 @@ def retry(retries=3, backoff=2, backoff_factor=2):
         def retry_f(*args, **kwargs):
             nonlocal retries
             nonlocal backoff
-            while options['retries'] > 1:
+            while retries > 1:
                 last_exc = None
                 try:
                     return f(*args, **kwargs)
@@ -31,12 +27,11 @@ def retry(retries=3, backoff=2, backoff_factor=2):
     return retry_decorator
 
 
-@retry
+@retry()
 def make_request(method, url, data=None, json=None, params=None, headers=None, timeout=5):
     r = requests.request(method, url, data=data, json=json, params=params, headers=headers)
-    
-    if r.status != 200:
+    if r.status_code != 200:
         raise HttpError(r.text)
-    
+
     return r.json()
         
