@@ -7,6 +7,7 @@ def handle(command, input):
     if command == 'addmal':
         return f"haven't implemented {command} yet, check back later :3"
     if command == 'mal': 
-        return mal.get_mal_user(input.get('MAL_name'))
-    
+        username = input.get('mal_name')
+        result = mal.get_mal_user(username)
+        return f"MAL profile info for {username}:\n{result}"
     return f"UNKNOWN COMMAND: {command}"
