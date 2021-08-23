@@ -2,7 +2,7 @@ import requests
 
 from enum import Enum
 
-EXCEPTIONS_TO_CATCH = (ConnectionError, TimeoutError, Timeout, HTTPError)
+EXCEPTIONS_TO_CATCH = (ConnectionError, TimeoutError, HTTPError)
 
 class METHODS(Enum):
     GET = 'GET'
