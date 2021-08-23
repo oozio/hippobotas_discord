@@ -3,7 +3,7 @@ import json
 from nacl.signing import VerifyKey
 from nacl.exceptions import BadSignatureError
 
-PUBLIC_KEY = '<your public key here>' # found on Discord Application -> General Information page
+PUBLIC_KEY = '7f28e2f1adb556db43a2e4d3bcde1ea177312d7a82c0e72fad5d005a1284f889'
 PING_PONG = {"type": 1}
 RESPONSE_TYPES =  { 
                     "PONG": 1, 
