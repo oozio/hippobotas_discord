@@ -4,78 +4,28 @@ import random
 from enum import Enum
 
 from utils import html
-from common.utils import find_true_name
-import common.constants as const
 
+# from common.utils import find_true_name
+import utils.constants as const
 
-
-class MAL_GENRES(Enum):
-    ACTION: 1
-    ADVENTURE: 2
-    CARS: 3
-    COMEDY: 4
-    DEMENTIA: 5
-    DEMONS: 6
-    MYSTERY: 7
-    DRAMA: 8
-    ECCHI: 9
-    FANTASY: 10
-    GAME: 11
-    HENTAI: 12
-    HISTORICAL: 13
-    HORROR: 14
-    KIDS: 15
-    MAGIC: 16
-    MARTIAL_ARTS: 17
-    MECHA: 18
-    MUSIC: 19
-    PARODY: 20
-    SAMURAI: 21
-    ROMANCE: 22
-    SCHOOL: 23
-    SCIFI: 24
-    SHOUJO: 25
-    SHOUJO_AI: 26
-    SHOUNEN: 27
-    SHOUNEN_AI: 28
-    SPACE: 29
-    SPORTS: 30
-    SUPERPOWER: 31
-    VAMPIRE: 32
-    YAOI: 33
-    YURI: 34
-    HAREM: 35
-    SLICE_OF_LIFE: 36
-    SUPERNATURAL: 37
-    MILITARY: 38
-    POLICE: 39
-    PSYCHOLOGICAL: 40
-
-class ANIME_GENRES(MAL_GENRES):
-    THRILLER: 41
-    SEINEN: 42
-    JOSEI: 43
-
-class MANGA_GENRES(MAL_GENRES):
-    SEINEN: 41
-    JOSEI: 42
-    GENDER_BENDER: 44
-    THRILLER: 45
-
-        
 
 def check_mal_nsfw(medium, series):
     url = f"{const.JIKAN_API}{medium}/{series}"
-    series_data = html.make_request(html.METHODS.GET, url)
+    series_data = html.make_request('get', url)
     for genre in series_data['genres']:
-        if genre['mal_id'] == MAL_GENRES.HENTAI:
+        if genre['mal_id'] == const.MAL_GENRES.HENTAI:
             return True
     return False
 
 def get_mal_user(username, retries=5):
     url = f"{const.JIKAN_API}user/{username}"
-    user_data = html.make_request(html.METHODS.GET, url)
-    return user_data
+    user_data = html.make_request('get', url)
+    result = ""
+    for key, value in user_data.items():
+        result = f"{result}\n{key}: {value}"
+    
+    return result
+    
 
 
 def set_mal_user(mal_user):

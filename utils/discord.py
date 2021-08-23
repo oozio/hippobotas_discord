@@ -5,6 +5,8 @@ import requests
 from nacl.signing import VerifyKey
 from nacl.exceptions import BadSignatureError
 
+MAX_RESPONSE_LENGTH = 2000
+
 RESPONSE_TYPES =  {
                     "PONG": 1,
                     "ACK_NO_SOURCE": 2,
@@ -79,20 +81,6 @@ def remove_role(user_id, role_id, server_id):
 def add_role(user_id, role_id, server_id):
     url = f"{BASE_URL}/guilds/{server_id}/members/{user_id}/roles/{role_id}"
     requests.put(url, headers=HEADERS)
-
-def get_size_role(server_id, roles):
-    results = []
-    role_names = _get_role_names_by_id(server_id, roles)
-    for name in role_names.values():
-        if SIZE_ROLE_NAME_PATTERN.match(name):
-            results.append(name)
-    if len(results) != 1:
-        print(f"? {results}")
-    return results[0]
-
-def get_size_roles_for_user(server_id, user_id):
-    roles = get_user_roles(server_id, user_id)
-    return [role for role in roles if SIZE_ROLE_NAME_PATTERN.match(role['name'])]
 
 def get_user_roles(server_id, user_id):
     url = f"{BASE_URL}/guilds/{server_id}/members/{user_id}"
@@ -239,14 +227,25 @@ def format_response(content, ephemeral, response_type=None):
     return response
 
 def send_followup(application_id, interaction_token, content, ephemeral=False):
+    while len(content) > MAX_RESPONSE_LENGTH:
+        send_followup(application_id, interaction_token, content[:MAX_RESPONSE_LENGTH])
+        content = content[MAX_RESPONSE_LENGTH:]
+
     body = format_response(content, ephemeral=ephemeral)
     url = f"{BASE_URL}/webhooks/{application_id}/{interaction_token}"
     requests.post(url, json=body, headers=HEADERS)
 
 def update_response(application_id, interaction_token, content, ephemeral=False):
+    remaining = ''
+    if len(content) > MAX_RESPONSE_LENGTH:
+        content, remaining = content[:MAX_RESPONSE_LENGTH], content[MAX_RESPONSE_LENGTH:]
+
     body = format_response(content, ephemeral=ephemeral)
     url = f"{BASE_URL}/webhooks/{application_id}/{interaction_token}/messages/@original"
     requests.patch(url, json=body, headers=HEADERS)
+
+    if remaining:
+        send_followup(application, interaction_token, remaining)
 
 def delete_response(application_id, interaction_token):
     url = f"{BASE_URL}/webhooks/{application_id}/{interaction_token}/messages/@original"

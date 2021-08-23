@@ -14,8 +14,14 @@ def handle_command(body):
     data = body['data']
     command = data['name']
     
+    options = {}
+    for option in data['options']:
+        option_key = option['name']
+        option_value = option['value']
+        options[option_key] = option_value
+
     if 'mal' in command:
-        return mal.handler.handle(command, data)
+        return mal.handler.handle(command, options)
     
     
     raise ValueError(f"Unrecognized command {command}, sad")
