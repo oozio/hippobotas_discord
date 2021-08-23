@@ -4,7 +4,7 @@
         "description": "Sets your MAL",
         "options": [
             {
-                "name": "MAL_name",
+                "name": "mal_name",
                 "description": "Your MAL username",
                 "type": 3,
                 "required": 1
@@ -16,7 +16,7 @@
         "description": "Displays a MAL profile",
         "options": [
             {
-                "name": "MAL_name",
+                "name": "mal_name",
                 "description": "MAL profile to show",
                 "type": 3,
                 "required": 1
