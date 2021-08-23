@@ -1,26 +1,56 @@
 import json
 
-from nacl.signing import VerifyKey
-from nacl.exceptions import BadSignatureError
+from utils import discord
 
-RESPONSE_TYPES =  { 
-                    "PONG": 1, 
-                    "ACK_NO_SOURCE": 2, 
-                    "MESSAGE_NO_SOURCE": 3, 
-                    "MESSAGE_WITH_SOURCE": 4, 
-                    "ACK_WITH_SOURCE": 5
-                  }
+import mal.handler
 
-    
-def lambda_handler(event, context):
+def handle_command(body):
     # dummy return
-    return {
-            "type": RESPONSE_TYPES['MESSAGE_NO_SOURCE'],
-            "data": {
-                "tts": False,
-                "content": "BEEP BOOP",
-                "embeds": [],
-                "allowed_mentions": []
-            }
-        }
+    channel_id = body["channel_id"]
+    server_id = body["guild_id"]
+    user_id = body['member']['user']['id']
+    role_ids = body['member']['roles']
+    
+    data = body['data']
+    command = data['name']
+    
+    if 'mal' in command:
+        return mal.handler.handle(command, data)
+    
+    
+    raise ValueError(f"Unrecognized command {command}, sad")
+        
+
+def lambda_handler(event, context):
+    # check input
+    pong = discord.check_input(event)
+    if pong: 
+        return pong
+    
+    # get interaction metadata
+    body = event["body-json"]
+    channel_id = body["channel_id"]
+    application_id = body["application_id"]
+    interaction_token = body["token"]
+    
+    user_id = body['member']['user']['id']
+    command = body['data']['name']
+    
+    output = None
+
+    try:
+        output = handle_command(body)
+    except Exception as e:
+        discord.delete_response(application_id, interaction_token)
+        discord.send_followup(application_id, interaction_token, f"Error: {e}", ephemeral=True)
+#         discord_utils.send_response(channel_id, None, {'title': f'/{command}', 'description': f"Error: {e}"}, ephemeral=True)
+        raise e
+  
+    if not output:
+        discord.delete_response(application_id, interaction_token)
+    else:
+        discord.update_response(application_id, interaction_token, output)
+#         discord_utils.send_followup(application_id, interaction_token, output)
+#         discord_utils.send_response(channel_id, f"<@{user_id}>", {'title': f'/{command}', 'description': output})
+
    
