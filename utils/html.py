@@ -1,6 +1,13 @@
 import requests
 
+from enum import Enum
+
 EXCEPTIONS_TO_CATCH = (ConnectionError, TimeoutError, Timeout, HTTPError)
+
+class METHODS(Enum):
+    GET = 'GET'
+    POST = 'POST'
+    PUT = 'PUT'
 
 def retry(retries=3, backoff=2, backoff_factor=2):
     def retry_decorator(f):
