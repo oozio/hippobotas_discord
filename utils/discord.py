@@ -85,12 +85,7 @@ def get_input(data, target):
         if option['name'] == target:
             return option['value']
 
-def format_response(content, ephemeral, response_type=None):
-    if response_type == 'PONG':
-        return {
-        "type": RESPONSE_TYPES[response_type] if response_type in RESPONSE_TYPES else RESPONSE_TYPES['MESSAGE_WITH_SOURCE'],
-        }
-    
+def format_response(content, ephemeral):
     embed_content = ""
 
     if isinstance(content, str):
@@ -98,17 +93,10 @@ def format_response(content, ephemeral, response_type=None):
             "content": content,
             "flags": 64 if ephemeral else None
         }
-
     else:
-        for k, v in content.items():
-            if k == 'title':
-                continue
-            embed_content += f"**{k}**\n {v}"
-        
-        embed = {'title': content['title'], 'description': embed_content}
         response = {
                 "content": '',
-                "embeds": [embed],
+                "embeds": [content],
                 "allowed_mentions": [],
                 "flags": 64 if ephemeral else None
             }
@@ -126,6 +114,7 @@ def send_followup(application_id, interaction_token, content, ephemeral=False):
 
 def update_response(application_id, interaction_token, content, ephemeral=False):
     remaining = ''
+    # TODO FIX FOR DICT CONTENT
     if len(content) > MAX_RESPONSE_LENGTH:
         content, remaining = content[:MAX_RESPONSE_LENGTH], content[MAX_RESPONSE_LENGTH:]
 

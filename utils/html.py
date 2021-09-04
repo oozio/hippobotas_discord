@@ -1,4 +1,5 @@
 import requests
+import time
 
 from functools import wraps
 from enum import Enum
@@ -22,6 +23,9 @@ def retry(retries=3, backoff=2, backoff_factor=2):
                     retries -= 1
                     backoff *= backoff_factor
 
+            if last_exc:
+                raise last_exc
+                
             return last_exc
         return retry_f
     return retry_decorator
@@ -31,7 +35,7 @@ def retry(retries=3, backoff=2, backoff_factor=2):
 def make_request(method, url, data=None, json=None, params=None, headers=None, timeout=5):
     r = requests.request(method, url, data=data, json=json, params=params, headers=headers)
     if r.status_code != 200:
-        raise HttpError(r.text)
+        raise requests.exceptions.HTTPError(r.text)
 
     return r.json()
         
