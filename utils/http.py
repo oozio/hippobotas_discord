@@ -12,6 +12,7 @@ def retry(retries=3, backoff=2, backoff_factor=2):
         def retry_f(*args, **kwargs):
             nonlocal retries
             nonlocal backoff
+            last_exc = None
             while retries > 1:
                 last_exc = None
                 try:

@@ -3,7 +3,7 @@ import random
 
 from enum import Enum
 
-from utils import html
+from utils import http, dynamodb
 
 
 # from common.utils import find_true_name
@@ -11,26 +11,28 @@ import constants.mal as const
 
 def check_mal_nsfw(medium, series):
     url = f"{const.JIKAN_API}/{medium}/{series}"
-    series_data = html.make_request('get', url)
+    series_data = http.make_request('get', url)
     for genre in series_data['genres']:
         if genre['mal_id'] == const.MAL_GENRES.HENTAI:
             return True
     return False
 
 def get_mal_user(username, retries=5):
+    # pulls info from JIKAN/MAL for a given MAL username
     url = f"{const.JIKAN_API}/user/{username}"
-    user_data = html.make_request('get', url)
+    user_data = http.make_request('get', url)
     user = const.User(user_data)
 
     result = user.format_for_embed()
 
     return result
-    
 
+def map_user(discord_user):
+    # returns whichever MAL username is connected with <discord_user>
+    pass
 
 def set_mal_user(mal_user):
-    pass
-    # user_data = get_mal_user(mal_user)
+    user_data = 
 
 
 def show_mal_user(username):

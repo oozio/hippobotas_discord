@@ -17,9 +17,9 @@
         "options": [
             {
                 "name": "mal_name",
-                "description": "MAL profile to show",
+                "description": "MAL profile to show; shows your own if set and left blank",
                 "type": 3,
-                "required": 1
+                "required": 0
             }
         ]
     }

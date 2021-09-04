@@ -1,11 +1,19 @@
 import random
 
+from datetime import datetime
+
 from constants.common import TrimmableClass
 from constants.common import TYPED_NONES
 
 # search
 JIKAN_API = 'https://api.jikan.moe/v3'
 JIKAN_SEARCH_API = 'https://api.jikan.moe/v3/search'
+
+# formatting
+FAVICON = "https://i.imgur.com/wjIHAk6.png"
+
+DT_RECEIVED_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
+DT_OUTPUT_FORMAT = "%m/%d/%Y"
 
 class Anime(TrimmableClass):
     FIELDS = {
@@ -159,9 +167,9 @@ class User(TrimmableClass):
             "type": str,
             "readable_name": "_image_url"
             }, 
-        "about": {
+        "last_online": {
             "type": str,
-            "readable_name": "About"
+            "readable_name": "Last online"
             }, 
         "anime_stats": {
             "type": dict,
@@ -184,6 +192,15 @@ class User(TrimmableClass):
         self.manga_stats = MangaStats(**getattr(self, 'manga_stats', {}))
         self.favorites   = Favorites(**getattr(self, 'favorites', {}))
 
+        if self.last_online:
+            self._format_timestamp()
+
+    def _format_timestamp(self):
+        # format to be py3.6 compatible
+        timezone_start = self.last_online.find("+")
+        self.last_online = self.last_online[:timezone_start+3] + self.last_online[timezone_start+4:timezone_start+6]
+        self.last_online = datetime.strptime(self.last_online, DT_RECEIVED_FORMAT)
+        
     def format_for_embed(self):    
         rand_fav_anime = self.favorites.prettify('anime')
         rand_fav_manga = self.favorites.prettify('manga')
@@ -205,7 +222,11 @@ class User(TrimmableClass):
                     "value": f"{self.manga_stats.prettify()}\n{rand_fav_manga}",
                     "inline": True
                 }
-            ]
+            ],
+            "footer": {
+                "icon_url": FAVICON,
+                "text": f"Last online: {self.last_online.strftime(DT_OUTPUT_FORMAT)}"
+            },
         }
 
         return embed
