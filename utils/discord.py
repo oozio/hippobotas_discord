@@ -41,132 +41,6 @@ def _form_permission():
         result = result | permission
     return result
 
-_ROLES_CACHE = {}
-def _get_all_roles(server_id, force_refresh=False):
-    if server_id in _ROLES_CACHE and not force_refresh:
-        return _ROLES_CACHE[server_id]
-    url = f"{BASE_URL}/guilds/{server_id}/roles"
-    roles = requests.get(url, headers=HEADERS).json()
-    _ROLES_CACHE[server_id] = roles
-    return roles
-
-def get_roles_by_ids(server_id, role_ids):
-    roles = _get_all_roles(server_id)
-    return [role for role in roles if role['id'] in role_ids]
-
-def get_roles_by_names(server_id, role_names):
-    roles = _get_all_roles(server_id)
-    return [role for role in roles if role['name'] in role_names]
-
-def _get_role_ids_by_name(server_id, role_names):
-    results = {key: None for key in role_names}
-    for role in _get_all_roles(server_id):
-        if role['name'] in role_names:
-            results[ role['name'] ] = role['id']
-        if None not in results.values():
-            return results
-
-def _get_role_names_by_id(server_id, role_ids):
-    results = {key: None for key in role_ids}
-    for role in _get_all_roles(server_id):
-        if role['id'] in role_ids:
-            results[ role['id'] ] = role['name']
-        if None not in results.values():
-            return results
-
-def remove_role(user_id, role_id, server_id):
-    url = f"{BASE_URL}/guilds/{server_id}/members/{user_id}/roles/{role_id}"
-    requests.delete(url, headers=HEADERS)
-
-def add_role(user_id, role_id, server_id):
-    url = f"{BASE_URL}/guilds/{server_id}/members/{user_id}/roles/{role_id}"
-    requests.put(url, headers=HEADERS)
-
-def get_user_roles(server_id, user_id):
-    url = f"{BASE_URL}/guilds/{server_id}/members/{user_id}"
-    user = requests.get(url,  headers=HEADERS).json()
-    print(f'user: {user}')
-    return get_roles_by_ids(server_id, user['roles'])
-
-def get_all_users(server_id):
-    # return all user_ids in a server
-
-    # idk if this works? my bot is broken :(
-    # https://discord.com/developers/docs/resources/guild#list-guild-members
-    url = f"{BASE_URL}/guilds/{server_id}/members?limit=1000"
-    response = requests.get(url,  headers=HEADERS)
-    return response.json()
-
-def change_role(server_id, user_id, old_role_name, new_role_name):
-    role_ids_by_name = _get_role_ids_by_name(server_id, [new_role_name, old_role_name])
-    remove_role(user_id, role_ids_by_name[old_role_name], server_id)
-    add_role(user_id, role_ids_by_name[new_role_name], server_id)
-
-_LOADED_SERVERS = set()
-_ALL_CHANNELS_BY_ID = {}
-_CHANNELS_BY_NAME_AND_SERVER = {}
-
-def _load_channels(server_id, force_refresh=False):
-    if server_id in _LOADED_SERVERS and not force_refresh:
-        return
-    url = f'{BASE_URL}/guilds/{server_id}/channels'
-    channels = requests.get(url, headers=HEADERS).json()
-    _ALL_CHANNELS_BY_ID.update({channel['id']: channel for channel in channels})
-    _CHANNELS_BY_NAME_AND_SERVER.update({
-            (channel['name'], channel['guild_id']): channel
-            for channel in channels
-    })
-    _LOADED_SERVERS.add(server_id)
-
-def get_channel_by_id(channel_id):
-    """ Returns a channel object.
-
-    returns channel object (dict).
-    Params found at https://discord.com/developers/docs/resources/channel
-    """
-    if channel_id in _ALL_CHANNELS_BY_ID:
-        return _ALL_CHANNELS_BY_ID[channel_id]
-
-    url = f"https://discord.com/api/v8/channels/{channel_id}"
-    channel = requests.get(url, headers=HEADERS).json()
-    _load_channels(channel['guild_id'])
-    return channel
-
-def get_channel(channel_name, server_id):
-    """ Returns a channel object.
-
-    returns channel object (dict).
-    Params found at https://discord.com/developers/docs/resources/channel
-    """
-    _load_channels(server_id)
-    return _CHANNELS_BY_NAME_AND_SERVER[channel_name, server_id]
-
-def set_channel_permissions(role_id, channel_name, server_id, grant_type):
-    """ Sets a channel's permissions for a given role.
-
-    permissions found at https://discord.com/developers/docs/topics/permissions#permissions])
-    """
-    channel_id = _CHANNELS_BY_NAME_AND_SERVER[channel_name, server_id]['id']
-    permissions = _form_permission()
-
-    put_body = {
-        "type": 0, # roles
-        grant_type: permissions
-    }
-
-    url = f"{BASE_URL}/channels/{channel_id}/permissions/{role_id}"
-
-    requests.put(url, json=put_body, headers=HEADERS)
-
-def move_user_to_channel(server_id, user_id, channel_name):
-    # only works for voice channels
-    body = {
-        "channel_id": _CHANNELS_BY_NAME_AND_SERVER[channel_name, server_id]['id']
-    }
-
-    url = f"{BASE_URL}/guilds/{server_id}/members/{user_id}"
-    requests.patch(url, json=body, headers=HEADERS)
-
 def post_message_in_channel(channel_id, content):
     url = f'{BASE_URL}/channels/{channel_id}/messages'
     body = {'content': content}
@@ -216,16 +90,31 @@ def format_response(content, ephemeral, response_type=None):
         return {
         "type": RESPONSE_TYPES[response_type] if response_type in RESPONSE_TYPES else RESPONSE_TYPES['MESSAGE_WITH_SOURCE'],
         }
+    
+    embed_content = ""
 
-    response = {
+    if isinstance(content, str):
+        response = {
             "content": content,
-            "embeds": [],
-            "allowed_mentions": [],
             "flags": 64 if ephemeral else None
         }
 
-    return response
+    else:
+        for k, v in content.items():
+            if k == 'title':
+                continue
+            embed_content += f"**{k}**\n {v}"
+        
+        embed = {'title': content['title'], 'description': embed_content}
+        response = {
+                "content": '',
+                "embeds": [embed],
+                "allowed_mentions": [],
+                "flags": 64 if ephemeral else None
+            }
 
+    return response
+    
 def send_followup(application_id, interaction_token, content, ephemeral=False):
     while len(content) > MAX_RESPONSE_LENGTH:
         send_followup(application_id, interaction_token, content[:MAX_RESPONSE_LENGTH])

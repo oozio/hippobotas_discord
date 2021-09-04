@@ -6,11 +6,10 @@ from enum import Enum
 from utils import html
 
 # from common.utils import find_true_name
-import utils.constants as const
-
+import constants.mal as const
 
 def check_mal_nsfw(medium, series):
-    url = f"{const.JIKAN_API}{medium}/{series}"
+    url = f"{const.JIKAN_API}/{medium}/{series}"
     series_data = html.make_request('get', url)
     for genre in series_data['genres']:
         if genre['mal_id'] == const.MAL_GENRES.HENTAI:
@@ -18,11 +17,12 @@ def check_mal_nsfw(medium, series):
     return False
 
 def get_mal_user(username, retries=5):
-    url = f"{const.JIKAN_API}user/{username}"
+    url = f"{const.JIKAN_API}/user/{username}"
     user_data = html.make_request('get', url)
-    result = ""
-    for key, value in user_data.items():
-        result = f"{result}\n{key}: {value}"
+    user = const.User(user_data)
+
+    result = user.raw()
+    result['title'] = f'MAL info for {username}'
     
     return result
     

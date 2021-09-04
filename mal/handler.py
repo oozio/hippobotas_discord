@@ -9,5 +9,5 @@ def handle(command, input):
     if command == 'mal': 
         username = input.get('mal_name')
         result = mal.get_mal_user(username)
-        return f"MAL profile info for {username}:\n{result}"
+        return result
     return f"UNKNOWN COMMAND: {command}"

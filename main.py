@@ -12,7 +12,7 @@ def handle_command(body):
     role_ids = body['member']['roles']
     
     data = body['data']
-    command = data['name']
+    command = data['name'].lower()
     
     options = {}
     for option in data['options']:
