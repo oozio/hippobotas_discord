@@ -24,7 +24,7 @@ class TrimmableClass(ABC):
         # for k, v in kwargs.items():
         for k, k_specs in fields.items():
             v = kwargs.get(k)
-            if k in kwargs and isinstance(v, fields[k].get("type")):
+            if k in kwargs and (v is None or isinstance(v, fields[k].get("type")) ):
                 setattr(self, k, v)
     
     # unwrap all info; use each field's readable_name if raw=False
@@ -43,13 +43,17 @@ class TrimmableClass(ABC):
         
             if not raw:
                 readable_name = k_specs.get("readable_name")
+                if not readable_name:
+                    readable_name = k
                 results[readable_name] = v
             else:
                 results[k] = v
         return results
-
-    def format_for_embed(self, embeds):
-        embed_template = type(self).EMBED_TEMPLATE
-        for k, v in embeds.items():
-            assert( isinstance(v, embed_template.get(k) ) )
+        
+    def prettify(self):
+        all_fields = self.unwrap(raw=False)
+        pretty_str = ""
+        for k, v in all_fields.items():
+            pretty_str += f"{k}: {v}\n"
             
+        return pretty_str.strip()

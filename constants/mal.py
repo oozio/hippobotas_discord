@@ -23,6 +23,9 @@ class Anime(TrimmableClass):
             },
     }
 
+    def prettify(self):
+        return f"[{self.name}]({self.url})"
+
 class Manga(TrimmableClass):
     FIELDS = {
         "mal_id": {
@@ -39,35 +42,50 @@ class Manga(TrimmableClass):
             },
     }
 
+    def prettify(self):
+        return f"[{self.name}]({self.url})"
+
+
+
 class AnimeStats(TrimmableClass):
     FIELDS = {
         "mean_score": {
-            "type": float
+            "type": float,
+            "readable_name": "Mean Score"
             },
         "completed": {
-            "type": int
+            "type": int,
+            "readable_name": "# Completed"
             }, 
         "watching": {
-            "type": int
+            "type": int,
+            "readable_name": "# Watching"
             }, 
         "episodes_watched": {
-            "type": int
+            "type": int,
+            "readable_name": "Episodes watched"
             }
     }
+    
+        
 
 class MangaStats(TrimmableClass):
     FIELDS = {
         "mean_score": {
-            "type": float
+            "type": float,
+            "readable_name": "Mean Score"
             },  
         "completed": {
-            "type": int
+            "type": int,
+            "readable_name": "# Completed"
             }, 
         "reading": {
-            "type": int
+            "type": int,
+            "readable_name": "# Reading"
             }, 
         "chapters_read": {
-            "type": int
+            "type": int,
+            "readable_name": "Chapters Read"
             }
     }
 
@@ -90,29 +108,43 @@ class Favorites(TrimmableClass):
             self.anime = [Anime(**fav_anime) for fav_anime in self.anime]            
 
     def random_manga(self):
-        return random.choice(self.manga)
+        return random.choice(self.manga) if self.manga else None
 
     def random_anime(self):
-        return random.choice(self.anime)
+        return random.choice(self.anime) if self.anime else None
 
-    def unwrap(self, max_len=1):
+    def unwrap(self, raw=False):
         results = {
             'manga': [], 
             'anime': []
             }
 
-        count = 0
-
         for manga, anime in zip(self.manga, self.anime):
             results['manga'].append(manga.unwrap())
             results['anime'].append(anime.unwrap())
-            
-            count += 1
-            if max_len and count > max_len:
-                break
 
         return results
 
+    def prettify(self, content_type=None):
+        pretty_str = ""
+
+        if not content_type:
+            raise ValueError('favorites.prettify() received no content type')
+
+        if content_type == 'manga': 
+            chosen_content = self.random_manga()
+        elif content_type == 'anime':
+            chosen_content = self.random_anime()
+        else:
+            raise ValueError('favorites.prettify() received unknown content type')
+        
+        if chosen_content:
+            pretty_str += f"Random favorite: {chosen_content.prettify()}\n"
+        else:
+            pretty_str += f"Random favorite: no favorites!\n"
+
+        return pretty_str
+        
 class User(TrimmableClass):
     FIELDS = {
         "username": {
@@ -152,13 +184,28 @@ class User(TrimmableClass):
         self.manga_stats = MangaStats(**getattr(self, 'manga_stats', {}))
         self.favorites   = Favorites(**getattr(self, 'favorites', {}))
 
-    def format_for_embed(self):
+    def format_for_embed(self):    
+        rand_fav_anime = self.favorites.prettify('anime')
+        rand_fav_manga = self.favorites.prettify('manga')
+        
         embed = {
             "author": {
                 "name": self.username,
                 "url": self.url,
                 "icon_url": self.image_url
-            }
+            },
+            "fields": [
+                {
+                    "name": "Anime Stats",
+                    "value": f"{self.anime_stats.prettify()}\n{rand_fav_anime}",
+                    "inline": True
+                },
+                {
+                    "name": "Manga Stats",
+                    "value": f"{self.manga_stats.prettify()}\n{rand_fav_manga}",
+                    "inline": True
+                }
+            ]
         }
 
         return embed

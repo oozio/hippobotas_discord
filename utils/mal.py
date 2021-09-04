@@ -19,13 +19,10 @@ def check_mal_nsfw(medium, series):
 
 def get_mal_user(username, retries=5):
     url = f"{const.JIKAN_API}/user/{username}"
-    status, return_data = html.make_request('get', url)
-    if status != html.ResponseCodes.SUCCESS:
-        return return_data
+    user_data = html.make_request('get', url)
     user = const.User(user_data)
 
     result = user.format_for_embed()
-    result['title'] = f'MAL info for {username}'
 
     return result
     
