@@ -1,5 +1,9 @@
 [
     {
+        "name": "git",
+        "description": "Fetch hippobotas git"
+     },
+    {
         "name": "addmal",
         "description": "Sets your MAL",
         "options": [

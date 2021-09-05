@@ -21,6 +21,10 @@ def handle_command(body):
             option_value = option['value']
             options[option_key] = option_value
 
+    if command == 'git':
+        return f"Code lives at https://github.com/oozio/hippobotas_discord; feel free to add pull requests"
+
+
     if 'mal' in command:
         return handlers.mal.handle(command, options, user_id)
     
