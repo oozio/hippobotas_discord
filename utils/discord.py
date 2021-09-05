@@ -85,18 +85,19 @@ def get_input(data, target):
         if option['name'] == target:
             return option['value']
 
-def format_response(content, ephemeral):
-    embed_content = ""
-
-    if isinstance(content, str):
+def format_response(body, ephemeral):
+    
+    if isinstance(body, str):
         response = {
-            "content": content,
+            "content": body,
             "flags": 64 if ephemeral else None
         }
-    else:
+    else:        
+        content = body.get('content')
+        embed = body.get('embed')
         response = {
-                "content": '',
-                "embeds": [content],
+                "content": content,
+                "embeds": [embed],
                 "allowed_mentions": [],
                 "flags": 64 if ephemeral else None
             }

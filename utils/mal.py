@@ -25,28 +25,34 @@ def get_mal_user(username):
         raise ValueError(f"No user data found for {username}")
     user = const.User(user_data)
 
-    result = user.format_for_embed()
+    result = {
+        'content': "",
+        "embed": user.format_for_embed()
+    }
     return result
 
 def map_user(discord_user):
     # returns whichever MAL username is connected with <discord_user>
     response = dynamodb.get_rows(DynamoDBInfo.TABLE.value, DynamoDBInfo.PK_TEMPLATE.value.format(discord_user))
     if not response:
-        raise ValueError(f"No associated MAL user found for you (discord ID {discord_user}), run /addmal <user> to set")
+        raise ValueError(f"No associated MAL user found for you (<@{discord_user}>), run /addmal <mal username> to set")
     # there should only be one row
     assert(len(response) == 1)
-    return response[0][DynamoDBInfo.MAL_USER_COLUMN.value]
+    return response[0][DynamoDBInfo.USER_COLUMN.value]
 
 def set_mal_user(discord_user, mal_user):
     # check that <mal_user> is valid
-    get_mal_user(mal_user)
+    result = get_mal_user(mal_user)
 
     pk_value = DynamoDBInfo.PK_TEMPLATE.value.format(discord_user)
     new_column = {
-        DynamoDBInfo.MAL_USER_COLUMN.value: mal_user
+        DynamoDBInfo.USER_COLUMN.value: mal_user
     }
     dynamodb.set_rows(DynamoDBInfo.TABLE.value, pk_value, new_column)
-    return f"set <@{discord_user}>'s MAL to [{mal_user}](https://myanimelist.net/profile/{mal_user})"
+    
+    result['content'] = f"set <@{discord_user}>'s MAL to [{mal_user}](https://myanimelist.net/profile/{mal_user})"
+
+    return result
 
 def show_mal_user(username):
     pass

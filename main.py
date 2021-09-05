@@ -2,7 +2,7 @@ import json
 
 from utils import discord
 
-import mal.handler
+import handlers.mal
 
 def handle_command(body):
     # dummy return
@@ -22,7 +22,7 @@ def handle_command(body):
             options[option_key] = option_value
 
     if 'mal' in command:
-        return mal.handler.handle(command, options, user_id)
+        return handlers.mal.handle(command, options, user_id)
     
     
     raise ValueError(f"Unrecognized command {command}, sad")

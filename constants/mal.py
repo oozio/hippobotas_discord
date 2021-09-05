@@ -9,7 +9,7 @@ from constants.common import TYPED_NONES
 # internal
 class DynamoDBInfo(Enum):
     TABLE = "hippobotas_discord_mal"
-    MAL_USER_COLUMN = "mal_username"
+    USER_COLUMN = "mal_username"
     PK_TEMPLATE = "discord_user_{}"
 
 # search
@@ -70,11 +70,11 @@ class AnimeStats(TrimmableClass):
             },
         "completed": {
             "type": int,
-            "readable_name": "# Completed"
+            "readable_name": "Completed"
             }, 
         "watching": {
             "type": int,
-            "readable_name": "# Watching"
+            "readable_name": "Watching"
             }, 
         "episodes_watched": {
             "type": int,
@@ -92,11 +92,11 @@ class MangaStats(TrimmableClass):
             },  
         "completed": {
             "type": int,
-            "readable_name": "# Completed"
+            "readable_name": "Completed"
             }, 
         "reading": {
             "type": int,
-            "readable_name": "# Reading"
+            "readable_name": "Reading"
             }, 
         "chapters_read": {
             "type": int,
