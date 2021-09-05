@@ -1,9 +1,16 @@
 import random
 
 from datetime import datetime
+from enum import Enum
 
 from constants.common import TrimmableClass
 from constants.common import TYPED_NONES
+
+# internal
+class DynamoDBInfo(Enum):
+    TABLE = "hippobotas_discord_mal"
+    MAL_USER_COLUMN = "mal_username"
+    PK_TEMPLATE = "discord_user_{}"
 
 # search
 JIKAN_API = 'https://api.jikan.moe/v3'

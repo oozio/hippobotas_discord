@@ -5,9 +5,9 @@ from enum import Enum
 
 from utils import http, dynamodb
 
-
 # from common.utils import find_true_name
 import constants.mal as const
+from constants.mal import DynamoDBInfo
 
 def check_mal_nsfw(medium, series):
     url = f"{const.JIKAN_API}/{medium}/{series}"
@@ -17,23 +17,36 @@ def check_mal_nsfw(medium, series):
             return True
     return False
 
-def get_mal_user(username, retries=5):
+def get_mal_user(username):
     # pulls info from JIKAN/MAL for a given MAL username
     url = f"{const.JIKAN_API}/user/{username}"
     user_data = http.make_request('get', url)
+    if not user_data:
+        raise ValueError(f"No user data found for {username}")
     user = const.User(user_data)
 
     result = user.format_for_embed()
-
     return result
 
 def map_user(discord_user):
     # returns whichever MAL username is connected with <discord_user>
-    pass
+    response = dynamodb.get_rows(DynamoDBInfo.TABLE.value, DynamoDBInfo.PK_TEMPLATE.value.format(discord_user))
+    if not response:
+        raise ValueError(f"No associated MAL user found for you (discord ID {discord_user}), run /addmal <user> to set")
+    # there should only be one row
+    assert(len(response) == 1)
+    return response[0][DynamoDBInfo.MAL_USER_COLUMN.value]
 
-def set_mal_user(mal_user):
-    user_data = 
+def set_mal_user(discord_user, mal_user):
+    # check that <mal_user> is valid
+    get_mal_user(mal_user)
 
+    pk_value = DynamoDBInfo.PK_TEMPLATE.value.format(discord_user)
+    new_column = {
+        DynamoDBInfo.MAL_USER_COLUMN.value: mal_user
+    }
+    dynamodb.set_rows(DynamoDBInfo.TABLE.value, pk_value, new_column)
+    return f"set <@{discord_user}>'s MAL to [{mal_user}](https://myanimelist.net/profile/{mal_user})"
 
 def show_mal_user(username):
     pass

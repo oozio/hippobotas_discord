@@ -15,13 +15,14 @@ def handle_command(body):
     command = data['name'].lower()
     
     options = {}
-    for option in data['options']:
-        option_key = option['name']
-        option_value = option['value']
-        options[option_key] = option_value
+    if 'options' in data:
+        for option in data.get('options'):
+            option_key = option['name']
+            option_value = option['value']
+            options[option_key] = option_value
 
     if 'mal' in command:
-        return mal.handler.handle(command, options)
+        return mal.handler.handle(command, options, user_id)
     
     
     raise ValueError(f"Unrecognized command {command}, sad")
